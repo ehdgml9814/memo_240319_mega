@@ -16,6 +16,12 @@
 							<input type="text" id="loginId" name="loginId" class="form-control col-9" placeholder="아이디를 입력하세요.">
 							<button type="button" id="loginIdCheckBtn" class="btn btn-success">중복확인</button><br>
 						</div>
+						
+						<!-- 아이디 체크 결과 -->
+						<!-- d-none 클래스: display none (보이지 않게) -->
+						<div id="idCheckLength" class="small text-danger d-none">ID를 4자 이상 입력해주세요.</div>
+						<div id="idCheckDuplicated" class="small text-danger d-none">이미 사용중인 ID입니다.</div>
+						<div id="idCheckOk" class="small text-success d-none">사용 가능한 ID 입니다.</div>
 					</td>
 				</tr>
 				<tr>
@@ -24,7 +30,7 @@
 				</tr>
 				<tr>
 					<th>* 비밀번호 확인</th>
-					<td><input type="password" id="password" name="password" class="form-control" placeholder="비밀번호를 입력하세요."></td>
+					<td><input type="password" id="confirmPassword" class="form-control" placeholder="비밀번호를 입력하세요."></td>
 				</tr>
 				<tr>
 					<th>* 이름</th>
@@ -44,7 +50,106 @@
 
 <th:block layout:fragment="script">
 	<script>
-		
+		$(document).ready(function() {
+			$("#loginIdCheckBtn").on('click', function() {
+				// 문구 초기화
+				$("#idCheckLength").addClass("d-none");
+				$("#idCheckDuplicated").addClass("d-none");
+				$("#idCheckOk").addClass("d-none");
+				
+				// alert("중복확인");
+				let loginId = $("#loginId").val().trim();
+				// alert(loginId);
+				
+				if (loginId.length < 4) {
+					$("#idCheckLength").removeClass("d-none");
+					return;
+				}
+				
+				// AJAX 호출
+				$.ajax({
+					// request
+					// type:"get"
+					url:"/user/is-duplicated-id"
+					, data:{"loginId":loginId}
+					
+					// response
+					, success:function(data) {
+						if (data.is_duplicated_id) { // 중복
+							$("#idCheckDuplicated").removeClass("d-none");
+						} else { // 사용 가능
+							$("#idCheckOk").removeClass("d-none");
+						}
+					}
+					, error:function(error) {
+						alert("중복확인에 실패했습니다.");
+					}
+				});
+			});
+			
+			// 회원가입
+			$("#signUpForm").on('submit', function(e) {
+				e.preventDefault(); // 서브밋 기능 중단(이동 X)
+				// alert("회원가입");
+				
+				let loginId = $("#loginId").val().trim();
+				let password = $("#password").val();
+				let confirmPassword = $("#confirmPassword").val().trim();
+				let name = $("#name").val().trim();
+				let email = $("#email").val().trim();
+				
+				if (!loginId) {
+					alert("아이디를 입력하세요");
+					return false; // submit 이벤트로 잡았을 때 false 해주어야 함
+				}
+				if (!password || !confirmPassword) {
+					alert("비밀번호를 입력하세요");
+					return false;
+				}
+				// 비번 확인 후 내려가기
+				if (password != confirmPassword) {
+					alert("비밀번호가 일치하지 않습니다");
+					return false;
+				}
+				
+				if (!name) {
+					alert("이름을 입력하세요");
+					return false;
+				}
+				if (!email) {
+					alert("이메일을 입력하세요");
+					return false;
+				}
+				
+				// id 중복확인 후 사용 가능한지 확인
+				// idCheckOk가 d-none이 있을 때 사용 불가 alert
+				if ($("#idCheckOk").hasClass("d-none")) {
+					alert("아이디 중복확인을 해주세요");
+					return false;
+				}
+				
+				// POST 방식은 RequestBody에 파라미터가 담겨져서 보내짐
+				// 서버 전송
+				// 1) submit 호출(e 이벤트로 중단시켰을 때) -> response가 화면(html)
+				/* $(this)[0].submit(); // submit 했기 때문에 화면 이동됨 */
+				
+				// 2) AJAX 호출 -> response가 JSON
+				let url = $(this).attr("action");
+				console.log(url);
+				let params = $(this).serialize(); // 폼 태그에 있는  name속성과 value를 파라미터로 구성해주는 함수
+				console.log(params);
+				
+				$.post(url, params) // request에 해당, 보낼 곳, 보낼 데이터
+				.done(function(data) { // response
+					if (data.code == 200) {
+						alert("가입을 환영합니다. 로그인페이지에서 로그인을 해주세요.");
+						location.href = "/user/sign-in-view";
+					} else {
+						alert(data.error_message);
+					}
+				});
+			});
+		});
 	</script>
 </th:block>
 </html>
