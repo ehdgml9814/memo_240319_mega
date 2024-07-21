@@ -19,12 +19,21 @@ public class PostBO {
 	@Autowired
 	private FileManagerService fileManagerService;
 	
+	// 글 조회
 	// input: 로그인된 유저 id
 	// output: List<Post>
 	public List<Post> getPostListByUserId(int userId) {
 		return postMapper.selectPostListByUserId(userId);
 	}
 	
+	// 글 수정
+	// input: userId, postId
+	// output: Post or null
+	public Post getPostByUserIdPostId(int userId, int postId) {
+		return postMapper.selectPostByUserIdPostId(userId, postId);
+	}
+	
+	// 글 추가
 	// input: 파라미터들
 	// output: X
 	public void addPost(int userId, String userLoginId, 

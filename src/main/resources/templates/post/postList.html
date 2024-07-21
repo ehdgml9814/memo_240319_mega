@@ -19,7 +19,8 @@
 			<tbody>
 				<tr th:each="post : ${postList}">
 					<td th:text="${post.id}">1</td>
-					<td th:text="${post.subject}">제목</td>
+					<!-- <td><a th:href="@{/post/post-detail-view(postId=${post.id})}" th:text="${post.subject}"></a></td> -->
+					<td><a th:href="|/post/post-detail-view?postId=${post.id}|" th:text="${post.subject}"></a></td>
 					<td th:text="${#temporals.format(post.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}">작성일</td>
 					<td th:text="${#temporals.format(post.updatedAt, 'yyyy년 MM월 dd일 HH:mm:ss')}">수정일</td>
 				</tr>

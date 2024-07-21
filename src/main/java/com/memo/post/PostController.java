@@ -59,4 +59,21 @@ public class PostController {
 //		// 화면 이동
 //		return "post/postDetail";
 //	}
+	
+	@GetMapping("/post-detail-view")
+	public String postDetailView(
+			@RequestParam("postId") int postId, 
+			Model model, 
+			HttpSession session) {
+		
+		// db 조회(userId, postId 조회)
+		int userId = (int)session.getAttribute("userId");
+		Post post = postBO.getPostByUserIdPostId(userId, postId);
+		
+		// model에 담기
+		model.addAttribute("post", post);
+		
+		// 화면 이동
+		return "post/postDetail";
+	}
 }
