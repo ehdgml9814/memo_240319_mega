@@ -54,6 +54,7 @@ public class PostBO {
 		postMapper.insertPost(userId, subject, content, imagePath);
 	}
 	
+	// 글 수정
 	// input: 파라미터들
 	// output: X
 	public void updatePostByPostId(
@@ -85,5 +86,25 @@ public class PostBO {
 		
 		// db 업데이트
 		postMapper.updatePostByPostId(postId, subject, content, imagePath);
+	}
+	
+	// 글 삭제
+	// input: postId, userId
+	// output: X
+	public void deletePostByPostIdUserId(int postId, int userId) {
+		// 기존 글 가져오기(이미지 파일 존재 시 삭제해야 함)
+		Post post = postMapper.selectPostByUserIdPostId(userId, postId);
+		if (post == null) {
+			log.info("[글 삭제] post is null postId:{} userId:{}", postId, userId);
+			return;
+		}
+		
+		// post 먼저 db에서 제거
+		int rowCount = postMapper.deletePostByPostId(postId);
+		
+		// 이미지 존재 시 삭제 + 삭제된 행도 1개 일 때
+		if (rowCount > 0 && post.getImagePath() != null) {
+			fileManagerService.deleteFile(post.getImagePath());
+		}
 	}
 }
