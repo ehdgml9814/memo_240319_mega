@@ -22,7 +22,10 @@ public class PostController {
 	private PostBO postBO;
 	
 	@GetMapping("/post-list-view")
-	public String postListView(HttpSession session, Model model) {
+	public String postListView(
+			@RequestParam(value = "prevId", required = false) Integer prevIdParam, 
+			@RequestParam(value = "nextId", required = false) Integer nextIdParam, 
+			HttpSession session, Model model) {
 		// 로그인 여부 확인
 		Integer userId = (Integer)session.getAttribute("userId");
 		if (userId == null) { // 비로그인 상태
@@ -31,9 +34,29 @@ public class PostController {
 		}
 		
 		// db 글목록 조회
-		List<Post> postList = postBO.getPostListByUserId(userId);
+		List<Post> postList = postBO.getPostListByUserId(userId, prevIdParam, nextIdParam);
+		int prevId = 0;
+		int nextId = 0;
+		if (postList.isEmpty() == false) { // 글목록이 비어있지 않을 때 페이징 정보 세팅
+			prevId = postList.get(0).getId();
+			nextId = postList.get(postList.size() - 1).getId();
+			
+			// 이전 방향의 끝이면 prevId를 0으로 세팅
+			// prevId와 테이블의 가장 큰 숫자와 같으면 끝 페이지인 것
+			if (postBO.isPrevLastPageByUserId(userId, prevId)) {
+				prevId = 0;
+			}
+			
+			// 다음 방향의 끝이면 nextId를 0으로 세팅
+			// nextId와 테이블의 가장 작은 숫자와 같으면 끝 페이지인 것
+			if (postBO.isNextLastPageByUserId(userId, nextId)) {
+				nextId = 0;
+			}
+		}
 		
 		// model에 담기
+		model.addAttribute("prevId", prevId);	
+		model.addAttribute("nextId", nextId);	
 		model.addAttribute("postList", postList);
 		
 		return "post/postList";
